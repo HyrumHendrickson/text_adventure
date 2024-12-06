@@ -1,5 +1,5 @@
 the basic game should be a bare bones example with no extra features
-i tried to make the code simple and readble, but its not perfect, feel free do improve/edit it
+i tried to make the code simple and readable, but its not perfect, feel free do improve/edit it
 
 the fancy game should be a demo of many extra features that can be added
 
