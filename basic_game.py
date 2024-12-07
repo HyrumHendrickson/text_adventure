@@ -172,6 +172,7 @@ def play_game():
     # Keep game running until player quits
     while True:
         command = input("\nWhat do you want to do? ").strip().split()
+        # print(command)
         print("")
 
         if len(command) == 0:
