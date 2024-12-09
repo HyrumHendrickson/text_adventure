@@ -1,8 +1,8 @@
-# Basic classes to represent game elements
 class Player:
     def __init__(self, location, inventory):
         self.location = location
         self.inventory = inventory
+        self.isPlaying = True
 
 
 class Location:
@@ -19,7 +19,6 @@ class Item:
         self.description = description
 
 
-# Function to create the game world
 def create_game_world():
     locations = {
         "forest": Location(
@@ -78,6 +77,7 @@ def create_game_world():
 
 # Help command
 def show_help():
+    print("")
     print("Available Commands:")
     print("- go [location]    : Move to a connected location")
     print("- grab [item]      : Pick up an item in the current location")
@@ -88,25 +88,19 @@ def show_help():
     print("- quit             : Exit the game")
 
 
-# Functions to handle different game actions
 def move_to_location(player, locations, destination):
+    print("")
     current_location = locations[player.location]
     if destination in current_location.connections:
         player.location = destination
         new_location = locations[destination]
-        print(f"You are now in the {new_location.name}")
-        print(new_location.description)
-        print("Connections:")
-        for connection in new_location.connections:
-            print(f"- {connection}")
-        print("Items here:")
-        for item in new_location.items:
-            print(f"- {item.name}")
+        look_around(player, locations)
     else:
         print(f"You cannot go to {destination} from here.")
 
 
 def pick_up_item(player, locations, item_name):
+    print("")
     current_location = locations[player.location]
     item_to_grab = None
     for item in current_location.items:
@@ -123,6 +117,7 @@ def pick_up_item(player, locations, item_name):
 
 
 def drop_item(player, locations, item_name):
+    print("")
     item_to_drop = None
     for item in player.inventory:
         if item.name.lower() == item_name.lower():
@@ -138,6 +133,7 @@ def drop_item(player, locations, item_name):
 
 
 def show_inventory(player):
+    print("")
     if len(player.inventory) > 0:
         print("You are carrying:")
         for item in player.inventory:
@@ -147,15 +143,50 @@ def show_inventory(player):
 
 
 def look_around(player, locations):
+    print("")
     current_location = locations[player.location]
     print(f"You are in the {current_location.name}")
     print(current_location.description)
+    print("")
     print("Connections:")
     for connection in current_location.connections:
         print(f"- {connection}")
+    print("")
     print("Items here:")
     for item in current_location.items:
         print(f"- {item.name}")
+
+
+def processInput(command, player, locations):
+
+    # removes whitespace and converts the command to an array
+    command = command.strip().split()
+
+    # checks if the command is empty
+    if len(command) == 0:
+            return
+
+    # get the first word of the command as the action (e.g., "go", "grab", "drop", etc.)
+    action = command[0]
+
+    # check the action and call the appropriate function
+    if action == "goto" and len(command) > 1:
+        move_to_location(player, locations, command[1])
+    elif action == "grab" and len(command) > 1:
+        pick_up_item(player, locations, command[1])
+    elif action == "drop" and len(command) > 1:
+        drop_item(player, locations, command[1])
+    elif action == "inventory":
+        show_inventory(player)
+    elif action == "look":
+        look_around(player, locations)
+    elif action == "help":
+        show_help()
+    elif action == "quit" or action == "exit":
+        print("Thanks for playing!")
+        player.isPlaying = False
+    else:
+        print("I don't understand that command.")
 
 
 # Main game loop
@@ -164,40 +195,16 @@ def play_game():
     locations = create_game_world()
     player = Player(location="forest", inventory=[])
 
-    # Game instructions
+    # Intro message for the game
     print("\nWelcome to the Text Adventure Game!")
     print("Type 'help' to see available commands.\n")
     look_around(player, locations)
 
     # Keep game running until player quits
-    while True:
-        command = input("\nWhat do you want to do? ").strip().split()
-        # print(command)
-        print("")
-
-        if len(command) == 0:
-            continue
-
-        action = command[0].lower()
-
-        if action == "goto" and len(command) > 1:
-            move_to_location(player, locations, command[1])
-        elif action == "grab" and len(command) > 1:
-            pick_up_item(player, locations, command[1])
-        elif action == "drop" and len(command) > 1:
-            drop_item(player, locations, command[1])
-        elif action == "inventory":
-            show_inventory(player)
-        elif action == "look":
-            look_around(player, locations)
-        elif action == "help":
-            show_help()
-        elif action == "quit" or action == "exit":
-            print("Thanks for playing!")
-            break
-        else:
-            print("I don't understand that command.")
-
+    while player.isPlaying:
+        command = input("\nWhat do you want to do? ")
+        processInput(command, player, locations)
+        
 
 # Start the game
 play_game()
