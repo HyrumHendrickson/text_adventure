@@ -10,5 +10,7 @@ weight system for items
 addional item functions (eating food, crafting, keys/locks, etc)
 learnable spells or skills
 puzzles or traps
+fancy parser 
+more complex commands
 
 I would love to see more instruction/exposition as well as keyword prompts in the "look" option
