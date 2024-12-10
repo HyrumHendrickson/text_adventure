@@ -109,8 +109,9 @@ def goto(command, player, locations):
         processInput("look", player, locations)
     else:
         print(f"You cannot go there from here.")
-commands["goto"] = {"run":goto, "help": "- goto [location] -> Move to a connected location"}
-commands["go"] = {"run":goto, "help": "- go [location] -> Move to a connected location"}
+commands["go"] = {"run":goto, "help": "- go to [location] -> Move to a connected location"}
+commands["walk"] = {"run":goto, "help": "- walk to [location] -> Move to a connected location"}
+commands["run"] = {"run":goto, "help": "- run to [location] -> Move to a connected location"}
 
 def grab(command, player, locations):
     print("")
@@ -122,6 +123,9 @@ def grab(command, player, locations):
     
     name_of_item = get_match(command, current_location.items_list())
     item_to_grab = [item for item in current_location.items if item.name == name_of_item]
+    if len(item_to_grab) == 0:
+        print(f"That item is not here.")
+        return
     item_to_grab = item_to_grab[0]
 
     if item_to_grab:
@@ -130,7 +134,8 @@ def grab(command, player, locations):
         print(f"You picked up the {name_of_item}.")
     else:
         print(f"There is no {name_of_item} here.")
-commands["grab"] = {"run":grab, "help": "- go [location] -> Move to a connected location"}
+commands["grab"] = {"run":grab, "help": "- grab [item] -> Move to a connected location"}
+commands["pick"] = {"run":grab, "help": "- pick up [item] -> Pick up an item in the current location"}
 
 def drop(command, player, locations):
     print("")
@@ -140,8 +145,10 @@ def drop(command, player, locations):
     
     name_of_item = get_match(command, player.inventory_list())
     item_to_drop = [item for item in player.inventory if item.name == name_of_item]
+    if len(item_to_drop) == 0:
+        print(f"That item is not in your inventory.")
+        return
     item_to_drop = item_to_drop[0]
-
     if item_to_drop:
         player.inventory.remove(item_to_drop)
         locations[player.location].items.append(item_to_drop)
@@ -150,18 +157,10 @@ def drop(command, player, locations):
         print(f"You are not carrying a {name_of_item}.")
 commands["drop"] = {"run":drop, "help": "- drop [item] -> Drop an item from your inventory"}
 
-def inventory(command, player, locations):
-    print("")
-    if len(player.inventory) > 0:
-        print("You are carrying:")
-        for item in player.inventory:
-            print(f"- {item.name}")
-    else:
-        print("Your inventory is empty.")
-commands["inventory"] = {"run":inventory, "help": "- inventory -> Show what items you're carrying"}
-
 def look(command, player, locations):
-    print("")
+    if get_match(command, ["inventory"]):
+        inventory(command, player, locations)
+        return
     current_location = locations[player.location]
     print(f"You are in the {current_location.name}")
     print(current_location.description)
@@ -173,20 +172,30 @@ def look(command, player, locations):
     print("Items here:")
     for item in current_location.items:
         print(f"- {item.name}")
+    
 commands["look"] = {"run":look, "help": "- look -> Describe the current location"}
+
+def inventory(command, player, locations):
+    print("")
+    if len(player.inventory) > 0:
+        print("You are carrying:")
+        for item in player.inventory:
+            print(f"- {item.name}")
+    else:
+        print("Your inventory is empty.")
+commands["inventory"] = {"run":inventory, "help": "- inventory -> Show what items you're carrying"}
 
 def quit(command, player, locations):
     print("Thanks for playing!")
     player.isPlaying = False
 commands["quit"] = {"run":quit, "help": "- quit -> Exit the game"}
-commands["exit"] = {"run":quit, "help": "- exit -> Exit the game"}
 
 def error(command, player, locations):
     print("Invalid command. Type 'help' to see available commands.")
 commands["error"] = {"run":error, "help": ""}
 
 def processInput(input_text, player, locations):
-    input_text = re.sub(r'[^a-z0-9 ]', '', input_text.lower().strip())
+    input_text = re.sub(r'[^a-z0-9_ ]', '', input_text.lower().strip())
     input_arr = input_text.split()
 
     if len(input_arr) == 0:
