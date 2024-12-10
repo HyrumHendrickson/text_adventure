@@ -1,5 +1,3 @@
-import re
-
 class Player:
     def __init__(self, location, inventory):
         self.location = location
@@ -266,7 +264,7 @@ def run_events(command, player, locations):
     
 
 def processInput(input_text, player, locations):
-    input_text = remove_special_characters(input_text.lower())
+    input_text = input_text.lower().strip()
     if input_text == "":
         input_text = "blank"
     input_arr = input_text.split()
@@ -298,11 +296,6 @@ def get_match(tokens, list_to_check):
             if token in split_item:
                 return item
     return None
-
-def remove_special_characters(s):
-    s = re.sub(r'[^a-z0-9_ ]', ' ', s)
-    s = re.sub(r'\s+', ' ', s)
-    return s.strip()
 
 # Main game loop
 def play_game():
