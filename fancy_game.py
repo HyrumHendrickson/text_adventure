@@ -195,7 +195,7 @@ def error(command, player, locations):
 commands["error"] = {"run":error, "help": ""}
 
 def processInput(input_text, player, locations):
-    input_text = re.sub(r'[^a-z0-9_ ]', '', input_text.lower().strip())
+    input_text = remove_special_characters(input_text.lower())
     input_arr = input_text.split()
 
     if len(input_arr) == 0:
@@ -247,6 +247,10 @@ def get_match(tokens, list_to_check):
                 return item
     return None
 
+def remove_special_characters(s):
+    s = re.sub(r'[^a-z0-9_ ]', ' ', s)
+    s = re.sub(r'\s+', ' ', s)
+    return s.strip()
 
 # Main game loop
 def play_game():
