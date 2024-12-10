@@ -1,3 +1,5 @@
+import re
+
 class Player:
     def __init__(self, location, inventory):
         self.location = location
@@ -184,8 +186,8 @@ def error(command, player, locations):
 commands["error"] = {"run":error, "help": ""}
 
 def processInput(input_text, player, locations):
-    
-    input_arr = input_text.lower().strip().split()
+    input_text = re.sub(r'[^a-z0-9 ]', '', input_text.lower().strip())
+    input_arr = input_text.split()
 
     if len(input_arr) == 0:
         print("Please enter a command.")
