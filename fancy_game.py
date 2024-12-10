@@ -26,6 +26,18 @@ class Item:
         self.name = name
         self.description = description
 
+class Weapon(Item):
+    def __init__(self, name, description, damage):
+        super().__init__(name, description) 
+        self.damage = damage
+
+class Event: 
+    def __init__(self, trigger, running = False, counter = 0, list = {}):
+        self.trigger = trigger
+        self.running = running
+        self.counter = counter
+        self.list = list
+
 
 def create_game_world():
     locations = {
@@ -106,7 +118,7 @@ def goto(command, player, locations):
 
     if location_to_go:
         player.location = location_to_go
-        processInput("look", player, locations)
+        run_command(["look"], player, locations)
     else:
         print(f"You cannot go there from here.")
 commands["go"] = {"run":goto, "help": "- go to [location] -> Move to a connected location"}
@@ -190,21 +202,76 @@ def quit(command, player, locations):
     player.isPlaying = False
 commands["quit"] = {"run":quit, "help": "- quit -> Exit the game"}
 
-def error(command, player, locations):
+def blank(command, player, locations):
     print("Invalid command. Type 'help' to see available commands.")
-commands["error"] = {"run":error, "help": ""}
+commands["blank"] = {"run":blank, "help": ""}
+
+
+events = []
+
+# this event triggers if the player tries to grab the briefcase, the briefcase explodes and is destroyed
+def briefcase_trap(self, command, player, locations):
+    if (not (self.counter == 0)) or get_match(command, ["briefcase"]) == None:
+        return False
+    # add health to player object and have the explosion reduce health
+    print("the briefcase explodes!!")
+    # this line is clunky, fix it, it removes the briefcase from the room
+    locations[player.location].items.remove([item for item in locations[player.location].items if item.name == "briefcase"][0])
+    self.counter += 1
+    return True
+
+events.append(Event(briefcase_trap))
+
+# this event triggers if the player tries to enter the corporate office
+def penthouse_tripwire(self, command, player, locations):
+    if (not (self.counter == 0)) or get_match(command, ["penthouse"]) == None:
+        return False
+    print("the tripwire is triggered! (but it did nothing)")
+    self.counter += 1
+    return True
+
+events.append(Event(penthouse_tripwire))
+
+
+# if the player is in the warehouse and tries to leave, this event triggers
+def warehouse_collapse(self, command, player, locations):
+    # return true if it triggers
+    if self.running:
+        if not(get_match(command, ["run", "exit"]) == None):
+            print("you barely make it out as warehouse collapses behind you")
+            player.location = "safehouse"
+            self.running = False
+            return True
+        if not(get_match(command, ["desk", "hide"]) == None):
+            print("you hide under a desk as the warehouse collapses around you. You get crushed and die")
+            player.isPlaying = False
+            self.running = False
+            return True
+        print("the walls are collapsing, hurry! do you run for the exit or hide under a desk?")
+        return True
+    if (not (self.counter == 0)) or get_match(command, ["go","walk","run"]) == None or (not player.location == "warehouse"):
+        return False
+    print("the walls begin to cave in as the warehouse begins to collapse, do you run for the exit or hide under a desk?")
+    self.running = True
+    self.counter += 1
+    return True
+
+events.append(Event(warehouse_collapse))
+
+def run_events(command, player, locations):
+    for event in events:
+        if event.trigger(event, command, player, locations):
+            return True
+    return False
+    
 
 def processInput(input_text, player, locations):
     input_text = remove_special_characters(input_text.lower())
+    if input_text == "":
+        input_text = "blank"
     input_arr = input_text.split()
-
-    if len(input_arr) == 0:
-        print("Please enter a command.")
-        return 
-    command = remove_illegal_tokens(input_arr, player, locations)
-    command = bring_action_to_front(command, player, locations)
-    action = command.pop(0)
-    commands[action]["run"](command, player, locations)
+    command = bring_action_to_front(input_arr, player, locations)
+    return command
     
 
 def bring_action_to_front(command, player, locations):
@@ -213,26 +280,11 @@ def bring_action_to_front(command, player, locations):
             command.remove(token)
             command.insert(0, token)
             return command
-    return ["error"]
+    return ["blank"] + command
 
-def remove_illegal_tokens(input_arr, player, locations):
-    legal_tokens = []
-    for key in commands.keys():
-        legal_tokens.append(key)
-    for key in locations[player.location].connections:
-        for sub_key in key.split("_"):
-            legal_tokens.append(sub_key)
-        legal_tokens.append(key)
-    for key in locations[player.location].items:
-        for sub_key in key.name.split("_"):
-            legal_tokens.append(sub_key)
-        legal_tokens.append(key.name)
-    for key in player.inventory:
-        for sub_key in key.name.split("_"):
-            legal_tokens.append(sub_key)
-        legal_tokens.append(key.name)
-
-    return [item for item in input_arr if item in legal_tokens]
+def run_command(command, player, locations):
+    action = command.pop(0)
+    commands[action]["run"](command, player, locations)
 
 def get_match(tokens, list_to_check):
     for item in list_to_check:
@@ -261,12 +313,16 @@ def play_game():
     # Intro message for the game
     print("\nWelcome to the Text Adventure Game!")
     print("Type 'help' to see available commands.\n")
-    processInput("look", player, locations)
+    run_command(["look"], player, locations)
 
     # Keep game running until player quits
     while player.isPlaying:
         input_text = input("\nWhat do you want to do? ")
-        processInput(input_text, player, locations)
+        command = processInput(input_text, player, locations)
+
+        # commands are only run if an event didn't run
+        if not run_events(command, player, locations):
+            run_command(command, player, locations)
         
 
 # Start the game
