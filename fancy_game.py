@@ -182,7 +182,6 @@ def look(command, player, locations):
     print("Items here:")
     for item in current_location.items:
         print(f"- {item.name}")
-    
 commands["look"] = {"run":look, "help": "- look -> Describe the current location"}
 
 def inventory(command, player, locations):
@@ -217,7 +216,6 @@ def briefcase_trap(self, command, player, locations):
     locations[player.location].items.remove([item for item in locations[player.location].items if item.name == "briefcase"][0])
     self.counter += 1
     return True
-
 events.append(Event(briefcase_trap))
 
 # this event triggers if the player tries to enter the corporate office
@@ -227,7 +225,6 @@ def penthouse_tripwire(self, command, player, locations):
     print("the tripwire is triggered! (but it did nothing)")
     self.counter += 1
     return True
-
 events.append(Event(penthouse_tripwire))
 
 
@@ -253,8 +250,8 @@ def warehouse_collapse(self, command, player, locations):
     self.running = True
     self.counter += 1
     return True
-
 events.append(Event(warehouse_collapse))
+
 
 def run_events(command, player, locations):
     for event in events:
@@ -270,7 +267,6 @@ def processInput(input_text, player, locations):
     input_arr = input_text.split()
     command = bring_action_to_front(input_arr, player, locations)
     return command
-    
 
 def bring_action_to_front(command, player, locations):
     for token in command:
@@ -316,7 +312,6 @@ def play_game():
         # commands are only run if an event didn't run
         if not run_events(command, player, locations):
             run_command(command, player, locations)
-        
 
 # Start the game
 play_game()
