@@ -170,7 +170,7 @@ def processInput(command, player, locations):
     action = command[0]
 
     # check the action and call the appropriate function
-    if action == "goto" and len(command) > 1:
+    if action == "go" and len(command) > 1:
         move_to_location(player, locations, command[1])
     elif action == "grab" and len(command) > 1:
         pick_up_item(player, locations, command[1])
